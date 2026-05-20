@@ -1,0 +1,23 @@
+# Flutter
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Android
+.gradle/
+local.properties
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# XAMPP uploads
+uploads/
+
+# Environment
+.env
