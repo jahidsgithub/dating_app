@@ -17,9 +17,7 @@ class DatingApp extends StatelessWidget {
     final prefs = await SharedPreferences.getInstance();
     final userString = prefs.getString("user");
 
-    if (userString == null) {
-      return null;
-    }
+    if (userString == null) return null;
 
     return jsonDecode(userString);
   }
@@ -27,11 +25,21 @@ class DatingApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dating App',
+      title: "Dating App",
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.pink,
-        scaffoldBackgroundColor: const Color(0xfff8fafc),
+        fontFamily: "Arial",
+        scaffoldBackgroundColor: const Color(0xfff6f7fb),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.pink,
+          primary: Colors.pink,
+        ),
+        appBarTheme: const AppBarTheme(
+          elevation: 0,
+          centerTitle: true,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+        ),
       ),
       home: FutureBuilder<Map<String, dynamic>?>(
         future: getSavedUser(),

@@ -45,6 +45,18 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  /* USER DETAILS */
+  static Future<Map<String, dynamic>> userDetails({
+    required String userId,
+  }) async {
+    final response = await http.post(
+      Uri.parse("${ApiConfig.baseUrl}/user_details.php"),
+      body: {"user_id": userId},
+    );
+
+    return jsonDecode(response.body);
+  }
+
   /* UPDATE PROFILE */
   static Future<Map<String, dynamic>> updateProfile({
     required String userId,
@@ -76,6 +88,15 @@ class ApiService {
     final response = await http.post(
       Uri.parse("${ApiConfig.baseUrl}/update_activity.php"),
       body: {"user_id": userId},
+    );
+
+    return jsonDecode(response.body);
+  }
+
+  /* ONLINE USERS COUNT */
+  static Future<Map<String, dynamic>> onlineUsersCount() async {
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseUrl}/online_users_count.php"),
     );
 
     return jsonDecode(response.body);
@@ -318,25 +339,5 @@ class ApiService {
     var responseData = await response.stream.bytesToString();
 
     return jsonDecode(responseData);
-  }
-
-  static Future<Map<String, dynamic>> onlineUsersCount() async {
-    final response = await http.get(
-      Uri.parse("${ApiConfig.baseUrl}/online_users_count.php"),
-    );
-
-    return jsonDecode(response.body);
-  }
-
-  /* USER DETAILS */
-  static Future<Map<String, dynamic>> userDetails({
-    required String userId,
-  }) async {
-    final response = await http.post(
-      Uri.parse("${ApiConfig.baseUrl}/user_details.php"),
-      body: {"user_id": userId},
-    );
-
-    return jsonDecode(response.body);
   }
 }
