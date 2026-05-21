@@ -28,9 +28,36 @@ class _MatchScreenState extends State<MatchScreen> {
 
   Timer? callStatusTimer;
   Timer? timeoutTimer;
+  Timer? onlineCountTimer;
 
   int ringingSeconds = 0;
   int maxRingingSeconds = 30;
+  int onlineUsers = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    loadOnlineUsersCount();
+
+    onlineCountTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => loadOnlineUsersCount(),
+    );
+  }
+
+  Future<void> loadOnlineUsersCount() async {
+    try {
+      final response = await ApiService.onlineUsersCount();
+
+      if (response["status"] == true) {
+        setState(() {
+          onlineUsers = int.parse(response["online_users"].toString());
+        });
+      }
+    } catch (e) {
+      debugPrint("Online count error: $e");
+    }
+  }
 
   Future<void> findMatch() async {
     setState(() {
@@ -173,16 +200,12 @@ class _MatchScreenState extends State<MatchScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const CircularProgressIndicator(color: Colors.pink),
-
                   const SizedBox(height: 20),
-
                   Text(
                     "Ringing ${matchedUser?["name"] ?? "User"}...",
                     style: const TextStyle(fontSize: 16),
                   ),
-
                   const SizedBox(height: 10),
-
                   Text(
                     "Timeout in ${maxRingingSeconds - ringingSeconds}s",
                     style: const TextStyle(color: Colors.grey, fontSize: 14),
@@ -287,6 +310,51 @@ class _MatchScreenState extends State<MatchScreen> {
     setState(() => callLoading = false);
   }
 
+  Widget onlineCountCard() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(.06),
+            blurRadius: 14,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 14,
+            width: 14,
+            decoration: const BoxDecoration(
+              color: Colors.green,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Text(
+            "Online Users",
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          ),
+          const Spacer(),
+          Text(
+            onlineUsers.toString(),
+            style: const TextStyle(
+              fontSize: 24,
+              color: Colors.pink,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget matchedUserCard() {
     if (matchedUser == null) return const SizedBox();
 
@@ -318,23 +386,17 @@ class _MatchScreenState extends State<MatchScreen> {
                 ? const Icon(Icons.person, size: 60, color: Colors.white)
                 : null,
           ),
-
           const SizedBox(height: 18),
-
           Text(
             matchedUser!["name"]?.toString() ?? "Unknown",
             style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
           ),
-
           const SizedBox(height: 8),
-
           Text(
             "${matchedUser!["gender"] ?? ""}, ${matchedUser!["country"] ?? ""}",
             style: const TextStyle(color: Colors.grey, fontSize: 15),
           ),
-
           const SizedBox(height: 25),
-
           SizedBox(
             width: double.infinity,
             height: 55,
@@ -363,6 +425,7 @@ class _MatchScreenState extends State<MatchScreen> {
   void dispose() {
     callStatusTimer?.cancel();
     timeoutTimer?.cancel();
+    onlineCountTimer?.cancel();
     super.dispose();
   }
 
@@ -372,6 +435,7 @@ class _MatchScreenState extends State<MatchScreen> {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
+          onlineCountCard(),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(25),

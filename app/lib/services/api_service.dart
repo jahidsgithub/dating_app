@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 
 class ApiService {
+  /* LOGIN */
   static Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -14,9 +15,11 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/login.php"),
       body: {"email": email, "password": password},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* REGISTER */
   static Future<Map<String, dynamic>> register({
     required String name,
     required String email,
@@ -38,9 +41,11 @@ class ApiService {
         "country": country,
       },
     );
+
     return jsonDecode(response.body);
   }
 
+  /* UPDATE PROFILE */
   static Future<Map<String, dynamic>> updateProfile({
     required String userId,
     required String name,
@@ -60,9 +65,23 @@ class ApiService {
         "country": country,
       },
     );
+
     return jsonDecode(response.body);
   }
 
+  /* UPDATE ACTIVITY */
+  static Future<Map<String, dynamic>> updateActivity({
+    required String userId,
+  }) async {
+    final response = await http.post(
+      Uri.parse("${ApiConfig.baseUrl}/update_activity.php"),
+      body: {"user_id": userId},
+    );
+
+    return jsonDecode(response.body);
+  }
+
+  /* FIND MATCH */
   static Future<Map<String, dynamic>> findMatch({
     required String userId,
     required String lookingFor,
@@ -71,24 +90,30 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/find_match.php"),
       body: {"user_id": userId, "looking_for": lookingFor},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* WALLET */
   static Future<Map<String, dynamic>> wallet({required String userId}) async {
     final response = await http.post(
       Uri.parse("${ApiConfig.baseUrl}/wallet.php"),
       body: {"user_id": userId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* COIN PACKAGES */
   static Future<Map<String, dynamic>> coinPackages() async {
     final response = await http.get(
       Uri.parse("${ApiConfig.baseUrl}/coin_packages.php"),
     );
+
     return jsonDecode(response.body);
   }
 
+  /* PURCHASE COIN */
   static Future<Map<String, dynamic>> purchaseCoin({
     required String userId,
     required String packageId,
@@ -104,9 +129,11 @@ class ApiService {
         "transaction_id": transactionId,
       },
     );
+
     return jsonDecode(response.body);
   }
 
+  /* DEDUCT COIN */
   static Future<Map<String, dynamic>> deductCoin({
     required String userId,
     required String coins,
@@ -116,17 +143,21 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/deduct_coin.php"),
       body: {"user_id": userId, "coins": coins, "call_id": callId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* END CALL */
   static Future<Map<String, dynamic>> endCall({required String callId}) async {
     final response = await http.post(
       Uri.parse("${ApiConfig.baseUrl}/end_call.php"),
       body: {"call_id": callId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* SEND CALL REQUEST */
   static Future<Map<String, dynamic>> sendCallRequest({
     required String callerId,
     required String receiverId,
@@ -135,9 +166,11 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/send_call_request.php"),
       body: {"caller_id": callerId, "receiver_id": receiverId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* CHECK INCOMING CALL */
   static Future<Map<String, dynamic>> checkIncomingCall({
     required String userId,
   }) async {
@@ -145,9 +178,11 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/check_incoming_call.php"),
       body: {"user_id": userId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* RESPOND CALL */
   static Future<Map<String, dynamic>> respondCall({
     required String requestId,
     required String responseText,
@@ -156,9 +191,11 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/respond_call.php"),
       body: {"request_id": requestId, "response": responseText},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* CHECK CALL STATUS */
   static Future<Map<String, dynamic>> checkCallStatus({
     required String requestId,
   }) async {
@@ -166,9 +203,11 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/check_call_status.php"),
       body: {"request_id": requestId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* CHECK LIVE CALL */
   static Future<Map<String, dynamic>> checkLiveCall({
     required String callId,
   }) async {
@@ -176,9 +215,11 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/check_live_call.php"),
       body: {"call_id": callId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* CALL HISTORY */
   static Future<Map<String, dynamic>> callHistory({
     required String userId,
   }) async {
@@ -186,9 +227,11 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/call_history.php"),
       body: {"user_id": userId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* BLOCK USER */
   static Future<Map<String, dynamic>> blockUser({
     required String blockerId,
     required String blockedUserId,
@@ -197,9 +240,11 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/block_user.php"),
       body: {"blocker_id": blockerId, "blocked_user_id": blockedUserId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* BLOCKED USERS */
   static Future<Map<String, dynamic>> blockedUsers({
     required String userId,
   }) async {
@@ -207,9 +252,11 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/blocked_users.php"),
       body: {"user_id": userId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* UNBLOCK USER */
   static Future<Map<String, dynamic>> unblockUser({
     required String blockerId,
     required String blockedUserId,
@@ -218,17 +265,21 @@ class ApiService {
       Uri.parse("${ApiConfig.baseUrl}/unblock_user.php"),
       body: {"blocker_id": blockerId, "blocked_user_id": blockedUserId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* LOGOUT */
   static Future<Map<String, dynamic>> logout({required String userId}) async {
     final response = await http.post(
       Uri.parse("${ApiConfig.baseUrl}/logout.php"),
       body: {"user_id": userId},
     );
+
     return jsonDecode(response.body);
   }
 
+  /* REPORT USER */
   static Future<Map<String, dynamic>> reportUser({
     required String reporterId,
     required String reportedUserId,
@@ -242,9 +293,11 @@ class ApiService {
         "reason": reason,
       },
     );
+
     return jsonDecode(response.body);
   }
 
+  /* UPLOAD PROFILE PHOTO */
   static Future<Map<String, dynamic>> uploadProfilePhoto({
     required String userId,
     required File imageFile,
@@ -261,8 +314,17 @@ class ApiService {
     );
 
     var response = await request.send();
+
     var responseData = await response.stream.bytesToString();
 
     return jsonDecode(responseData);
+  }
+
+  static Future<Map<String, dynamic>> onlineUsersCount() async {
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseUrl}/online_users_count.php"),
+    );
+
+    return jsonDecode(response.body);
   }
 }

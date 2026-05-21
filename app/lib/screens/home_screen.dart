@@ -21,11 +21,12 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int selectedIndex = 0;
 
   Timer? incomingCallTimer;
   Timer? vibrationTimer;
+  Timer? activityTimer;
 
   bool incomingDialogOpen = false;
 
@@ -35,6 +36,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
+    WidgetsBinding.instance.addObserver(this);
+
     pages = [
       MatchScreen(user: widget.user),
       WalletScreen(user: widget.user),
@@ -42,10 +45,50 @@ class _HomeScreenState extends State<HomeScreen> {
       ProfileScreen(user: widget.user),
     ];
 
+    updateUserActivity();
+    startActivityHeartbeat();
     startIncomingCallChecker();
   }
 
+  void startActivityHeartbeat() {
+    activityTimer?.cancel();
+
+    activityTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => updateUserActivity(),
+    );
+  }
+
+  Future<void> updateUserActivity() async {
+    try {
+      await ApiService.updateActivity(userId: widget.user["id"].toString());
+    } catch (e) {
+      debugPrint("Activity update error: $e");
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.resumed) {
+      updateUserActivity();
+      startActivityHeartbeat();
+      startIncomingCallChecker();
+    }
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.inactive) {
+      activityTimer?.cancel();
+      incomingCallTimer?.cancel();
+      stopVibration();
+    }
+  }
+
   void startIncomingCallChecker() {
+    incomingCallTimer?.cancel();
+
     incomingCallTimer = Timer.periodic(
       const Duration(seconds: 3),
       (_) => checkIncomingCall(),
@@ -287,6 +330,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> logout() async {
+    activityTimer?.cancel();
     incomingCallTimer?.cancel();
     stopVibration();
 
@@ -299,6 +343,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove("user");
 
+    if (!mounted) return;
+
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -308,8 +354,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
+    activityTimer?.cancel();
     incomingCallTimer?.cancel();
     stopVibration();
+
     super.dispose();
   }
 

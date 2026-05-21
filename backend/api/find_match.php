@@ -14,6 +14,14 @@ if ($user_id == "") {
 
 $user_id = intval($user_id);
 
+/* Auto offline inactive users */
+mysqli_query($conn, "
+    UPDATE users
+    SET is_online = 0
+    WHERE last_seen < (NOW() - INTERVAL 30 SECOND)
+");
+
+/* Current user check */
 $userCheck = mysqli_query($conn, "
     SELECT * FROM users
     WHERE id = $user_id
@@ -29,22 +37,27 @@ if (mysqli_num_rows($userCheck) == 0) {
     exit;
 }
 
+/* Make current user online */
+mysqli_query($conn, "
+    UPDATE users
+    SET is_online = 1, last_seen = NOW()
+    WHERE id = $user_id
+");
+
 /* Remove old queue */
 mysqli_query($conn, "
     DELETE FROM match_queue
     WHERE user_id = $user_id
 ");
 
-/* Gender filter */
 $genderSql = "";
 
 if ($looking_for != "any") {
     $safeGender = mysqli_real_escape_string($conn, $looking_for);
-
     $genderSql = " AND u.gender = '$safeGender' ";
 }
 
-/* Match query excluding blocked users */
+/* Match only online + active + unblocked users */
 $matchQuery = mysqli_query($conn, "
     SELECT
         mq.id AS queue_id,
@@ -56,25 +69,24 @@ $matchQuery = mysqli_query($conn, "
         u.age,
         u.country,
         u.profile_photo,
-        u.coins
+        u.coins,
+        u.is_online,
+        u.last_seen
     FROM match_queue mq
-
     JOIN users u ON mq.user_id = u.id
 
     WHERE mq.status = 'waiting'
-
     AND mq.user_id != $user_id
-
     AND u.status = 'active'
+    AND u.is_online = 1
+    AND u.last_seen >= (NOW() - INTERVAL 30 SECOND)
 
-    /* blocked by me */
     AND mq.user_id NOT IN (
         SELECT blocked_user_id
         FROM user_blocks
         WHERE blocker_id = $user_id
     )
 
-    /* blocked me */
     AND mq.user_id NOT IN (
         SELECT blocker_id
         FROM user_blocks
@@ -84,7 +96,6 @@ $matchQuery = mysqli_query($conn, "
     $genderSql
 
     ORDER BY mq.created_at ASC
-
     LIMIT 1
 ");
 
@@ -98,25 +109,10 @@ if (mysqli_num_rows($matchQuery) > 0) {
         WHERE id = " . intval($match["queue_id"])
     );
 
-    $matched_user_id = intval($match["id"]);
-
-    $channel = "call_" . $user_id . "_" . $matched_user_id . "_" . time();
-
-    mysqli_query($conn, "
-        INSERT INTO calls
-        (caller_id, receiver_id, agora_channel, start_time, status)
-        VALUES
-        ($user_id, $matched_user_id, '$channel', NOW(), 'running')
-    ");
-
-    $call_id = mysqli_insert_id($conn);
-
     echo json_encode([
         "status" => true,
         "message" => "Match found",
-        "matched_user" => $match,
-        "agora_channel" => $channel,
-        "call_id" => $call_id
+        "matched_user" => $match
     ]);
 
 } else {
@@ -132,7 +128,7 @@ if (mysqli_num_rows($matchQuery) > 0) {
 
     echo json_encode([
         "status" => false,
-        "message" => "Waiting for match"
+        "message" => "Waiting for online match"
     ]);
 }
 ?>
