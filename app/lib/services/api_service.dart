@@ -327,4 +327,16 @@ class ApiService {
 
     return jsonDecode(response.body);
   }
+
+  /* USER DETAILS */
+  static Future<Map<String, dynamic>> userDetails({
+    required String userId,
+  }) async {
+    final response = await http.post(
+      Uri.parse("${ApiConfig.baseUrl}/user_details.php"),
+      body: {"user_id": userId},
+    );
+
+    return jsonDecode(response.body);
+  }
 }
